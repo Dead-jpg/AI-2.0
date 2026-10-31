@@ -4,15 +4,16 @@ import {
   HarmBlockThreshold,
 } from "@google/generative-ai";
 
-const MODEL_NAME = "gemini-2.0-flash";
+const PRIMARY_MODEL = "gemini-3.8-flash";
+const FALLBACK_MODELS = ["gemini-2.5-flash", "gemini-1.5-flash","gemini-3.6-flash"];
 
 const API_KEY =
   import.meta.env.VITE_GEMINI_API_KEY ||
-  "AIzaSyAcsJwMm-vNqIXXokfl6Xe7M4zWi0gXOYY";
+  "";
 
-export default async function runChat(prompt) {
+async function generateWithModel(modelName, prompt) {
   const genAI = new GoogleGenerativeAI(API_KEY);
-  const model = genAI.getGenerativeModel({ model: MODEL_NAME });
+  const model = genAI.getGenerativeModel({ model: modelName });
   const generationConfig = {
     temperature: 0.75,
     topK: 1,
@@ -47,6 +48,25 @@ export default async function runChat(prompt) {
 
   const result = await chat.sendMessage(prompt);
   const response = result.response;
-  console.log(response.text());
   return response.text();
+}
+
+export default async function runChat(prompt) {
+  const models = [PRIMARY_MODEL, ...FALLBACK_MODELS];
+  let lastError;
+
+  for (const modelName of models) {
+    try {
+      const text = await generateWithModel(modelName, prompt);
+      console.log(`Generated response using ${modelName}`);
+      return text;
+    } catch (err) {
+      lastError = err;
+      console.warn(`Model ${modelName} returned error:`, err?.message);
+      // Wait 1 second before trying next model
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
+  }
+
+  throw lastError;
 }
