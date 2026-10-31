@@ -10,7 +10,7 @@ The application is designed to offer a seamless and engaging user experience, de
 
 The project is live and hosted on Netlify. 
 
-🔗 **Visit here:** https://69257db1ff401140449f54b2--chatbot-96.netlify.app/
+🔗 **Visit here:** https://ai-2ooo.vercel.app/
 
 ---
 
